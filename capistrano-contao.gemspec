@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path('../lib/capistrano-contao/version', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.authors       = ["Wael M. Nasreddine"]
@@ -14,13 +13,11 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = "capistrano-contao"
   gem.require_paths = ["lib"]
-  gem.version       = TechnoGate::Capistrano::Contao::VERSION
+  gem.version       = '0.0.1'
 
   # Runtime dependencies
   gem.add_dependency 'rake'
   gem.add_dependency 'activesupport'
-
-  # Development dependencies
-  gem.add_development_dependency 'rspec'
-  gem.add_development_dependency 'fakefs'
+  gem.add_dependency 'capistrano'
+  gem.add_dependency 'capistrano-database'
 end

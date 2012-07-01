@@ -14,6 +14,8 @@ unless Capistrano::Configuration.respond_to?(:instance)
 end
 
 Capistrano::Configuration.instance(:must_exist).load do
+  Rails.env = 'production'
+
   namespace :contao do
     desc '[internal] Setup contao'
     task :setup, :roles => :app, :except => { :no_release => true } do

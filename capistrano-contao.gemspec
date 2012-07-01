@@ -13,12 +13,14 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = 'capistrano-contao'
   gem.require_paths = ['lib']
-  gem.version       = '0.0.2'
+  gem.version       = '0.0.3'
 
   # Runtime dependencies
   gem.add_dependency 'rake'
   gem.add_dependency 'activesupport'
+  gem.add_dependency 'capistrano', '>= 2.12.0'
   gem.add_dependency 'capistrano-database'
   gem.add_dependency 'capistrano-utils'
   gem.add_dependency 'capistrano-server'
+  gem.add_dependency 'capistrano-content'
 end

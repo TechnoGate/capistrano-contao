@@ -1,21 +1,21 @@
 unless Capistrano::Configuration.respond_to?(:instance)
-  abort 'capistrano/ext/items requires capistrano 2'
+  abort 'capistrano/ext/item requires capistrano 2'
 end
 
 Capistrano::Configuration.instance(:must_exist).load do
-  set :shared_items_path, -> { "#{fetch :shared_path}/items" }
+  set :shared_item_path, -> { "#{fetch :shared_path}/items" }
 
-  namespace :items do
+  namespace :item do
     desc '[internal] Symlink all items'
     task :link, :roles => :app do
-      link_items fetch(:shared_items_path),
+      link_items fetch(:shared_item_path),
         fetch(:latest_release)
     end
 
     desc '[internal] Setup shared items'
     task :setup, :roles => :app do
       fetch(:shared_items, []).each do |item|
-        item_shared_path = "#{fetch :shared_items_path}/#{item.gsub /\//, ','}"
+        item_shared_path = "#{fetch :shared_item_path}/#{item.gsub /\//, ','}"
         item_public_path = "#{fetch :latest_release}/#{item}"
 
         unless remote_file_exists? item_shared_path
@@ -32,8 +32,8 @@ Capistrano::Configuration.instance(:must_exist).load do
   end
 
   # Internal Dependencies
-  before 'items:link', 'items:setup'
+  before 'item:link', 'item:setup'
 
   # External Dependencies
-  before 'deploy:restart', 'items:link'
+  before 'deploy:restart', 'item:link'
 end

@@ -8,7 +8,8 @@ require 'capistrano/ext/contao_assets'
 require 'capistrano/ext/database'
 require 'capistrano/ext/server'
 require 'capistrano/ext/deploy'
-require 'capistrano/ext/items'
+require 'capistrano/ext/item'
+require 'capistrano/ext/content'
 
 unless Capistrano::Configuration.respond_to?(:instance)
   abort 'capistrano/ext/contao requires capistrano 2'

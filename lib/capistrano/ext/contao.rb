@@ -1,23 +1,26 @@
 require 'active_support/core_ext/object/blank'
+require 'capistrano/monkey_patches/fix_capture_conflict'
+require 'capistrano/ext/helpers'
+require 'capistrano/ext/git'
 require 'capistrano/ext/custom_colors'
 require 'capistrano/ext/decouple_from_rails'
 require 'capistrano/ext/contao_assets'
 require 'capistrano/ext/database'
-require 'capistrano/functions'
-require 'capistrano/monkey_patches/fix_capture_conflict'
+require 'capistrano/ext/server'
+require 'capistrano/ext/deploy'
 
 unless Capistrano::Configuration.respond_to?(:instance)
-  abort "capistrano/ext/contao requires capistrano 2"
+  abort 'capistrano/ext/contao requires capistrano 2'
 end
 
-Capistrano::Configuration.instance.load do
+Capistrano::Configuration.instance(:must_exist).load do
   namespace :contao do
-    desc "[internal] Setup contao"
+    desc '[internal] Setup contao'
     task :setup, :roles => :app, :except => { :no_release => true } do
       # Empty task, the rest should hook to it
     end
 
-    desc "[internal] Setup contao shared contents"
+    desc '[internal] Setup contao shared contents'
     task :setup_shared_folder, :roles => :app, :except => { :no_release => true } do
       shared_path = fetch :shared_path
       run <<-CMD
@@ -32,13 +35,13 @@ Capistrano::Configuration.instance.load do
       put deny_htaccess, "#{shared_path}/logs/.htaccess"
     end
 
-    desc "[internal] Setup contao's localconfig"
+    desc '[internal] Setup contao localconfig'
     task :setup_localconfig, :roles => :app, :except => { :no_release => true } do
       localconfig_php_config_path = "#{fetch :shared_path}/config/public_system_config_localconfig.php"
       on_rollback { run "rm -f #{localconfig_php_config_path}" }
       db_credentials = fetch :db_credentials
 
-      localconfig = File.read("config/examples/localconfig.php.erb")
+      localconfig = File.read('config/examples/localconfig.php.erb')
 
       config = TechnoGate::Contao::Application.config.contao_global_config
 
@@ -54,19 +57,20 @@ Capistrano::Configuration.instance.load do
       else
         config = config.clone
         config.application_name = TechnoGate::Contao::Application.name
-
         config.db_server_app = fetch :db_server_app
-        config.db_hostname   = db_credentials['hostname']
-        config.db_port       = db_credentials['port']
-        config.db_username   = db_credentials['username']
-        config.db_password   = db_credentials['password']
-        config.db_name       = db_credentials['database']
+        config.db_database   = fetch :db_database_name
 
-        put ERB.new(localconfig).result(binding), localconfig_php_config_path
+        [:hostname, :port, :username, :password].each do |item|
+          if db_credentials[item].present?
+            config.send "db_#{item}=", db_credentials[item]
+          end
+        end
+
+        write ERB.new(localconfig).result(binding), localconfig_php_config_path
       end
     end
 
-    desc "[internal] Link files from contao to inside public folder"
+    desc '[internal] Link files from contao to inside public folder'
     task :link_contao_files, :roles => :app, :except => { :no_release => true } do
       files = exhaustive_list_of_files_to_link("#{fetch :latest_release}/contao", "#{fetch :latest_release}/public")
       commands = files.map do |list|
@@ -76,11 +80,11 @@ Capistrano::Configuration.instance.load do
       begin
         run commands.join(';')
       rescue Capistrano::CommandError
-        abort "Unable to create to link contao files"
+        abort 'Unable to create to link contao files'
       end
     end
 
-    desc "[internal] Fix contao's symlinks to the shared path"
+    desc '[internal] Fix contao symlinks to the shared path'
     task :fix_links, :roles => :app, :except => { :no_release => true } do
       latest_release = fetch :latest_release
       shared_path = fetch :shared_path
@@ -98,16 +102,16 @@ Capistrano::Configuration.instance.load do
   end
 
   # Dependencies
-  after "deploy:setup", "contao:setup"
-  after "contao:setup", "contao:setup_shared_folder"
-  after "contao:setup", "contao:setup_localconfig"
-  after "deploy:finalize_update", "contao:link_contao_files"
-  after "contao:link_contao_files", "contao:fix_links"
+  after 'deploy:setup', 'contao:setup'
+  after 'contao:setup', 'contao:setup_shared_folder'
+  after 'contao:setup', 'contao:setup_localconfig'
+  after 'deploy:finalize_update', 'contao:link_contao_files'
+  after 'contao:link_contao_files', 'contao:fix_links'
 
   # Assets
-  after "contao:link_contao_files", "contao:assets:deploy"
+  after 'contao:link_contao_files', 'contao:assets:deploy'
 
   # Database credentions
-  before "contao:setup_localconfig", "db:credentials"
-  before "contao:setup_db", "db:credentials"
+  before 'contao:setup_localconfig', 'db:credentials'
+  before 'contao:setup_db', 'db:credentials'
 end

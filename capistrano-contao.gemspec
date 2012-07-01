@@ -3,7 +3,7 @@
 Gem::Specification.new do |gem|
   gem.authors       = ["Wael M. Nasreddine"]
   gem.email         = ["wael.nasreddine@gmail.com"]
-  gem.description   = 'Capistrano receipts for Contao deployment'
+  gem.description   = 'Capistrano recipes for Contao deployment'
   gem.summary       = gem.summary
   gem.homepage      = 'http://technogate.github.com/contao'
   gem.required_ruby_version = Gem::Requirement.new('>= 1.9.2')
@@ -18,6 +18,7 @@ Gem::Specification.new do |gem|
   # Runtime dependencies
   gem.add_dependency 'rake'
   gem.add_dependency 'activesupport'
-  gem.add_dependency 'capistrano'
   gem.add_dependency 'capistrano-database'
+  gem.add_dependency 'capistrano-utils'
+  gem.add_dependency 'capistrano-server'
 end

@@ -1,7 +1,3 @@
-unless Capistrano::Configuration.respond_to?(:instance)
-  abort 'capistrano/ext/contao requires capistrano 2'
-end
-
 Capistrano::Configuration.instance(:must_exist).load do
   namespace :deploy do
     desc 'Check if the remote is ready, should we run cap deploy:setup?'

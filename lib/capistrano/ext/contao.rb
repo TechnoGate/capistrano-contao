@@ -11,10 +11,6 @@ require 'capistrano/ext/deploy'
 require 'capistrano/ext/item'
 require 'capistrano/ext/content'
 
-unless Capistrano::Configuration.respond_to?(:instance)
-  abort 'capistrano/ext/contao requires capistrano 2'
-end
-
 Capistrano::Configuration.instance(:must_exist).load do
   Rails.env = 'production'
 

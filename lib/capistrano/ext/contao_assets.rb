@@ -1,7 +1,3 @@
-unless Capistrano::Configuration.respond_to?(:instance)
-  abort 'capistrano/ext/contao requires Capistrano 2'
-end
-
 Capistrano::Configuration.instance(:must_exist).load do
   namespace :contao do
     namespace :assets do

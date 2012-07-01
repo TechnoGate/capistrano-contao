@@ -1,7 +1,3 @@
-unless Capistrano::Configuration.respond_to?(:instance)
-  abort 'capistrano/ext/item requires capistrano 2'
-end
-
 Capistrano::Configuration.instance(:must_exist).load do
   set :shared_item_path, -> { "#{fetch :shared_path}/items" }
 

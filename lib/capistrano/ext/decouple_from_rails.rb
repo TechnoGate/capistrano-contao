@@ -1,7 +1,3 @@
-unless Capistrano::Configuration.respond_to?(:instance)
-  abort 'capistrano/ext/decouple_from_rails requires capistrano 2'
-end
-
 Capistrano::Configuration.instance(:must_exist).load do
   # Prevent capistrano from creating log, system and pids folders.
   set :shared_children, Array.new

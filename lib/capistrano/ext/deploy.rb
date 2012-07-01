@@ -42,6 +42,11 @@ Capistrano::Configuration.instance(:must_exist).load do
       setup unless main_task == 'deploy:setup'
     end
 
+    desc '[internal] Clean up folders'
+    task :clean_folders, :roles => :app do
+      clean_folder fetch(:deploy_to)
+    end
+
     desc '[internal] Symlink public folder'
     task :symlink_public_folders, :roles => :web, :except => { :no_release => true } do
       deploy_to = fetch :deploy_to
@@ -66,6 +71,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   # Dependencies
   before 'deploy',         'deploy:check_if_remote_ready'
   after  'deploy:restart', 'deploy:fix_permissions'
+  after  'deploy:restart', 'deploy:clean_folders'
   before 'deploy:setup',   'deploy:folders'
   after  'deploy:setup',   'deploy:symlink_public_folders'
 end

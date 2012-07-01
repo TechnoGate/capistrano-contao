@@ -8,6 +8,7 @@ require 'capistrano/ext/contao_assets'
 require 'capistrano/ext/database'
 require 'capistrano/ext/server'
 require 'capistrano/ext/deploy'
+require 'capistrano/ext/items'
 
 unless Capistrano::Configuration.respond_to?(:instance)
   abort 'capistrano/ext/contao requires capistrano 2'
@@ -39,7 +40,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
     desc '[internal] Setup contao localconfig'
     task :setup_localconfig, :roles => :app, :except => { :no_release => true } do
-      localconfig_php_config_path = "#{fetch :shared_path}/config/public_system_config_localconfig.php"
+      localconfig_php_config_path = "#{fetch :shared_path}/items/public,system,config,localconfig.php"
       on_rollback { run "rm -f #{localconfig_php_config_path}" }
       db_credentials = fetch :db_credentials
 
@@ -73,32 +74,16 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
 
     desc '[internal] Link files from contao to inside public folder'
-    task :link_contao_files, :roles => :app, :except => { :no_release => true } do
-      files = exhaustive_list_of_files_to_link("#{fetch :latest_release}/contao", "#{fetch :latest_release}/public")
-      commands = files.map do |list|
-        "#{try_sudo} ln -nsf #{list[0]} #{list[1]}"
-      end
-
-      begin
-        run commands.join(';')
-      rescue Capistrano::CommandError
-        abort 'Unable to create to link contao files'
-      end
+    task :link_files, :roles => :app, :except => { :no_release => true } do
+      deep_link "#{fetch :latest_release}/contao",
+        "#{fetch :latest_release}/public"
     end
 
     desc '[internal] Fix contao symlinks to the shared path'
     task :fix_links, :roles => :app, :except => { :no_release => true } do
-      latest_release = fetch :latest_release
-      shared_path = fetch :shared_path
-
-      # Remove files
       run <<-CMD
-        #{try_sudo} rm -rf #{latest_release}/public/system/logs
-      CMD
-
-      # Create symlinks
-      run <<-CMD
-        #{try_sudo} ln -nsf #{shared_path}/logs #{latest_release}/public/system/logs
+        #{try_sudo} rm -rf #{fetch :latest_release}/public/system/logs;
+        #{try_sudo} ln -nsf #{fetch :shared_path}/logs #{fetch :latest_release}/public/system/logs
       CMD
     end
   end
@@ -107,11 +92,11 @@ Capistrano::Configuration.instance(:must_exist).load do
   after 'deploy:setup', 'contao:setup'
   after 'contao:setup', 'contao:setup_shared_folder'
   after 'contao:setup', 'contao:setup_localconfig'
-  after 'deploy:finalize_update', 'contao:link_contao_files'
-  after 'contao:link_contao_files', 'contao:fix_links'
+  after 'deploy:finalize_update', 'contao:link_files'
+  after 'contao:link_files', 'contao:fix_links'
 
   # Assets
-  after 'contao:link_contao_files', 'contao:assets:deploy'
+  before 'deploy:finalize_update', 'contao:assets'
 
   # Database credentions
   before 'contao:setup_localconfig', 'db:credentials'

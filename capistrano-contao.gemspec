@@ -19,8 +19,10 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'rake'
   gem.add_dependency 'activesupport'
   gem.add_dependency 'capistrano', '>= 2.12.0'
+  gem.add_dependency 'capistrano_colors'
   gem.add_dependency 'capistrano-database'
   gem.add_dependency 'capistrano-utils'
   gem.add_dependency 'capistrano-server'
   gem.add_dependency 'capistrano-content'
+  gem.add_dependency 'capistrano-multistage'
 end

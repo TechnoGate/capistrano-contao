@@ -69,7 +69,7 @@ Capistrano::Configuration.instance(:must_exist).load do
     desc '[internal] Link files from contao to inside public folder'
     task :link_files, :roles => :app, :except => { :no_release => true } do
       deep_link "#{fetch :latest_release}/contao",
-        "#{fetch :latest_release}/public"
+        "#{fetch :latest_release}/public", group: true
     end
 
     desc '[internal] Fix contao symlinks to the shared path'

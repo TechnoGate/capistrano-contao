@@ -45,32 +45,25 @@ Capistrano::Configuration.instance(:must_exist).load do
       db_credentials = fetch :db_credentials
 
       localconfig = File.read('config/examples/localconfig.php.erb')
+      load 'config/initializers/contao.rb'
+      TechnoGate::Contao::Application.load_global_config!
 
-      config = TechnoGate::Contao::Application.config.contao_global_config
+      config = TechnoGate::Contao::Application.config.dup
 
-      if !config || config.install_password.blank? || config.encryption_key.blank?
-        message = <<-EOS
-          You did not set the install password, and the encryption key in your
-          #{ENV['HOME']}/.contao/config.yml, I cannot generate a localconfig
-          since the required configuration keys are missing.
-        EOS
-        message.gsub!(/ [ ]+/, ' ').gsub!(/\n/, '').gsub!(/^ /, '')
-        logger.important message if logger
-        abort 'Required configurations are not set'
-      else
-        config = config.clone
-        config.application_name = TechnoGate::Contao::Application.name
-        config.db_server_app = fetch :db_server_app
-        config.db_database   = fetch :db_database_name
+      db_credentials_for_config = {
+        'host'     => db_credentials[:hostname],
+        'port'     => db_credentials[:port].present? ? db_credentials[:port] : nil,
+        'user'     => db_credentials[:username],
+        'pass'     => db_credentials[:password],
+        'database' => fetch(:db_database_name),
+      }
 
-        [:hostname, :port, :username, :password].each do |item|
-          if db_credentials[item].present?
-            config.send "db_#{item}=", db_credentials[item]
-          end
-        end
-
-        write ERB.new(localconfig).result(binding), localconfig_php_config_path
+      config.contao.global.send("#{fetch :db_server_app}=", ActiveSupport::OrderedOptions.new)
+      db_credentials_for_config.each do |k, v|
+        config.contao.global.send("#{fetch :db_server_app}").send("#{k}=", v)
       end
+
+      write ERB.new(localconfig, nil, '-').result(binding), localconfig_php_config_path
     end
 
     desc '[internal] Link files from contao to inside public folder'
